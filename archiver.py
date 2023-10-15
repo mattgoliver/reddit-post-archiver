@@ -50,14 +50,21 @@ def archive_saved_posts(upvote=False, limit=None, log=False):
         if str(type(post)) == "<class 'praw.models.reddit.comment.Comment'>":  # Ignore saved comments
             continue
 
+        print()  # Improve output readability, puts spaces in between the output of each post
+
+        if access.check_duplicate(post.id, cursor):  # Ignore duplicate post
+            print(f"MAIN: Duplicate found of post: '{post.title}'.")
+            continue
+
         file_name = download(post, log)  # Download file and grab file name
 
         if file_name is None:  # Continue to next post if there was no file to download
             continue
 
-        print(f"MAIN: Download successful, filename: '{file_name[8:]}'")
-
         archive(post, file_name, log)
+
+    print('-' * 80)  # Separate main output from closing messages
+    print("MAIN: Finished downloading and archiving posts")
 
 
 def download(post, log=False):
@@ -83,8 +90,7 @@ def download(post, log=False):
         print(f"DOWNLOAD: Error with post: '{post.title}', no media to download.")
         return None
 
-    if log:
-        print(f"DOWNLOAD: Downloading post: '{post.title}', file type: '{file_type}'.")
+    print(f"DOWNLOAD: Downloading post: '{post.title}', file type: '{file_type}'.")
 
     # Loop until unique file name is generated
     post_exists = True
@@ -124,6 +130,7 @@ def archive(post, file_name, log=False):
         f"'{post.subreddit}', {subreddit_size}, {post.score}, {post.upvote_ratio}, '{file_name}', '{post.url}', "
         f"{post.created_utc})"
     )
+    connection.commit()
 
     print(f"ARCHIVE: '{post.title}' successfully added to the archive.")
 
@@ -157,20 +164,24 @@ def initialize_database_connection(database_name, log=False):
     if os.path.isfile(database_name):
         local_connection = sqlite3.connect(database_name)
         local_cursor = local_connection.cursor()
-        if log:
-            print(f'SQLLite3: Database exists. Successfully connected to {database_name}')
+        print(f'SQLLite3: Database exists. Successfully connected to {database_name}')
 
     # If the database does not exist, then create it and connect to it
     else:
-        if log:
-            print(f'SQLLite3: Database does not exist. Creating {database_name}...')
+        print(f'SQLLite3: Database does not exist. Creating {database_name}...')
         local_connection = sqlite3.connect(database_name)
         local_cursor = local_connection.cursor()
         local_cursor.execute("create table posts (id text, title text, author text, content_text text, "
                              "subreddit text, subreddit_size integer, upvotes integer, ratio integer, "
                              "file_name text, url text, created integer)")
-        if log:
-            print(f"SQLLite3: Database successfully created.")
+        print(f"SQLLite3: Database successfully created.")
+
+    if log:
+        print("SQLLite3: Printing current database:")
+        local_cursor.execute("SELECT * FROM posts")
+        rows = local_cursor.fetchall()
+        for row in rows:
+            print(row)
 
     return local_connection, local_cursor
 
@@ -193,20 +204,21 @@ def initialize_reddit_connection(log=False):
         username=secrets["username"]
     )
 
-    if log:
-        print(f"PRAW: Successfully authenticated as user: {reddit.user.me()}")
+    print(f"PRAW: Successfully authenticated as user: {reddit.user.me()}")
 
     return reddit
 
 
 if __name__ == "__main__":
     # Initialize Reddit instance
-    reddit = initialize_reddit_connection(log=True)
+    reddit = initialize_reddit_connection()
 
     # Initialize database connection
-    connection, cursor = initialize_database_connection("reddit-post-archive.db", log=True)
+    connection, cursor = initialize_database_connection("reddit-post-archive.db")
 
-    archive_saved_posts(limit=3, log=True)
+    print('-' * 80, end="")  # Separate initialization messages from main output
+
+    archive_saved_posts(limit=10)
 
     # Close database connection
     connection.close()
