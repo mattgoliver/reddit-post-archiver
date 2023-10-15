@@ -10,6 +10,13 @@ import praw  # Allows access to Reddit's API
 import sqlite3  # Allows for database management
 import os  # Allows for checking if database exists
 import uuid  # Allows for generation of unique file names
+import urllib.request  # Allows for media downloading
+import requests  # Allows for retrieval of media type given URL
+import mimetypes  # Allows for retrieval of media type given URL
+import progressbar  # Allows for progress bar for downloads
+import time
+
+pbar = None
 
 
 def read_secrets(filename):
@@ -43,12 +50,17 @@ def archive_saved_posts(upvote=False, limit=None, log=False):
         if str(type(post)) == "<class 'praw.models.reddit.comment.Comment'>":  # Ignore saved comments
             continue
 
-        file_name = download_post(post, log)
+        file_name = download(post, log)
 
-        archive(post, "test", log)
+        if file_name is None:
+            continue
+
+        print(f"MAIN: Download successful, filename: '{file_name[8:]}'")
+
+        # archive(post, "test", log)
 
 
-def download_post(post, log=False):
+def download(post, log=False):
     """Downloads post at given url.
 
     Args:
@@ -59,18 +71,28 @@ def download_post(post, log=False):
          tup: File name
     """
     file_name = ""
+    url = post.url
+
+    # Retrieve file type
+    response = requests.get(url)
+    content_type = response.headers['content-type']
+    file_type = mimetypes.guess_extension(content_type)
+
+    if file_type is None:
+        print(f"DOWNLOAD: Error with post: '{post.title}', no media to download.")
+        return None
+
+    if log:
+        print(f"DOWNLOAD: Downloading post: '{post.title}', file type: '{file_type}'.")
 
     post_exists = True
     while post_exists is True:
-        file_name = str(uuid.uuid4().hex) + ".txt"
+        file_name = "./media/" + str(uuid.uuid4().hex) + file_type
 
-        if not os.path.isfile("./media/" + file_name):  # Check if file name already exists
+        if not os.path.isfile(file_name):  # Check if file name already exists
             post_exists = False
-            if log:
-                print(f"DOWNLOAD: '{file_name}' is unique.")
-        else:
-            if log:
-                print(f"DOWNLOAD: '{file_name}' already exists, regenerating.")
+
+    urllib.request.urlretrieve(url, file_name, show_progress)
 
     return file_name
 
@@ -86,6 +108,20 @@ def archive(post, file_name, log=False):
         log (bool): Print log messages, default = False
     """
     print(f"ARCHIVE: NOT FINISHED - Post title: {post.title}")
+
+
+def show_progress(block_num, block_size, total_size):
+    global pbar
+    if pbar is None:
+        pbar = progressbar.ProgressBar(maxval=total_size)
+        pbar.start()
+
+    downloaded = block_num * block_size
+    if downloaded < total_size:
+        pbar.update(downloaded)
+    else:
+        pbar.finish()
+        pbar = None
 
 
 def initialize_database_connection(database_name, log=False):
@@ -147,7 +183,7 @@ if __name__ == "__main__":
     # Initialize database connection
     # connection, cursor = initialize_database_connection("reddit-post-archive.db", log=True)
 
-    # archive_saved_posts(limit=5)
+    archive_saved_posts(limit=3, log=True)
 
     # Close database connection
     # connection.close()
