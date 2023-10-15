@@ -50,9 +50,9 @@ def archive_saved_posts(upvote=False, limit=None, log=False):
         if str(type(post)) == "<class 'praw.models.reddit.comment.Comment'>":  # Ignore saved comments
             continue
 
-        file_name = download(post, log)
+        file_name = download(post, log)  # Download file and grab file name
 
-        if file_name is None:
+        if file_name is None:  # Continue to next post if there was no file to download
             continue
 
         print(f"MAIN: Download successful, filename: '{file_name[8:]}'")
@@ -78,6 +78,7 @@ def download(post, log=False):
     content_type = response.headers['content-type']
     file_type = mimetypes.guess_extension(content_type)
 
+    # Return None if there is no file to download
     if file_type is None:
         print(f"DOWNLOAD: Error with post: '{post.title}', no media to download.")
         return None
@@ -85,6 +86,7 @@ def download(post, log=False):
     if log:
         print(f"DOWNLOAD: Downloading post: '{post.title}', file type: '{file_type}'.")
 
+    # Loop until unique file name is generated
     post_exists = True
     while post_exists is True:
         file_name = "./media/" + str(uuid.uuid4().hex) + file_type
@@ -92,6 +94,7 @@ def download(post, log=False):
         if not os.path.isfile(file_name):  # Check if file name already exists
             post_exists = False
 
+    # Download file
     urllib.request.urlretrieve(url, file_name, show_progress)
 
     return file_name
@@ -111,6 +114,7 @@ def archive(post, file_name, log=False):
 
 
 def show_progress(block_num, block_size, total_size):
+    # Solution from: https://stackoverflow.com/questions/37748105/how-to-use-progressbar-module-with-urlretrieve
     global pbar
     if pbar is None:
         pbar = progressbar.ProgressBar(maxval=total_size)
@@ -134,12 +138,14 @@ def initialize_database_connection(database_name, log=False):
     Returns:
         tup: Database connection and cursor
     """
+    # If the database exists, then connect to it
     if os.path.isfile(database_name):
         local_connection = sqlite3.connect(database_name)
         local_cursor = local_connection.cursor()
         if log:
             print(f'SQLLite3: Database exists. Successfully connected to {database_name}')
 
+    # If the database does not exist, then create it and connect to it
     else:
         if log:
             print(f'SQLLite3: Database does not exist. Creating {database_name}...')
@@ -170,6 +176,7 @@ def initialize_reddit_connection(log=False):
         user_agent=secrets["user_agent"],
         username=secrets["username"]
     )
+
     if log:
         print(f"PRAW: Successfully authenticated as user: {reddit.user.me()}")
 
