@@ -57,7 +57,7 @@ def archive_saved_posts(upvote=False, limit=None, log=False):
 
         print(f"MAIN: Download successful, filename: '{file_name[8:]}'")
 
-        # archive(post, "test", log)
+        archive(post, file_name, log)
 
 
 def download(post, log=False):
@@ -103,14 +103,29 @@ def download(post, log=False):
 def archive(post, file_name, log=False):
     """Archives the post at the given url.
 
-    Information archived: ID, title, author, content (text & media), subreddit, url, date, amount of upvotes
+    Information archived: ID, title, author, content (text & media), subreddit, url, date, amount and ratio of upvotes
 
     Args:
         post: Post to archive.
         file_name: Name of downloaded file to associate post information with.
         log (bool): Print log messages, default = False
     """
-    print(f"ARCHIVE: NOT FINISHED - Post title: {post.title}")
+    # Find the subscriber count of the post's subreddit
+    subreddit_size = int(reddit.subreddit(str(post.subreddit)).subscribers)
+
+    if log:
+        print(f"ARCHIVE: ID: {post.id}, Title: {post.title}, Author: {post.author}, Text: {post.selftext}, "
+              f"Subreddit: {post.subreddit}, Subreddit Size: {subreddit_size}, Upvotes: {post.score}, "
+              f"Ratio: {post.upvote_ratio}, File name: {file_name}, URL: {post.url}, Created: {post.created_utc}")
+
+    # Add post data to the database
+    cursor.execute(
+        f"insert into posts values ('{post.id}', '{post.title}', '{post.author}', '{post.selftext}', "
+        f"'{post.subreddit}', {subreddit_size}, {post.score}, {post.upvote_ratio}, '{file_name}', '{post.url}', "
+        f"{post.created_utc})"
+    )
+
+    print(f"ARCHIVE: '{post.title}' successfully added to the archive.")
 
 
 def show_progress(block_num, block_size, total_size):
@@ -151,8 +166,9 @@ def initialize_database_connection(database_name, log=False):
             print(f'SQLLite3: Database does not exist. Creating {database_name}...')
         local_connection = sqlite3.connect(database_name)
         local_cursor = local_connection.cursor()
-        local_cursor.execute("create table posts (file_name text, id text, title text, author text, content_text text, "
-                             "subreddit text, url text, upvotes integer, time integer)")
+        local_cursor.execute("create table posts (id text, title text, author text, content_text text, "
+                             "subreddit text, subreddit_size integer, upvotes integer, ratio integer, "
+                             "file_name text, url text, created integer)")
         if log:
             print(f"SQLLite3: Database successfully created.")
 
@@ -188,10 +204,10 @@ if __name__ == "__main__":
     reddit = initialize_reddit_connection(log=True)
 
     # Initialize database connection
-    # connection, cursor = initialize_database_connection("reddit-post-archive.db", log=True)
+    connection, cursor = initialize_database_connection("reddit-post-archive.db", log=True)
 
     archive_saved_posts(limit=3, log=True)
 
     # Close database connection
-    # connection.close()
-    # print("SQLLite3: Database successfully closed.")
+    connection.close()
+    print("SQLLite3: Database successfully closed.")
