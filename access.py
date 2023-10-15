@@ -3,18 +3,35 @@
 Author: Matthew Oliver
 Version: 10/15/2023
 """
+import archiver
 
 
-def check_duplicate(post_id):
+def check_duplicate(post_id, local_cursor, log=False):
     """Check the database for existing post ID.
 
     Args:
         post_id (str): Post ID to check for duplicates
+        local_cursor: Database connection
+        log (bool): Print log messages, default = False
 
     Returns:
         bool: True = duplicate found, False = new post
     """
-    pass
+    # Search database for the given post id
+    local_cursor.execute(f"select * from posts where id='{post_id}'")
+    results = local_cursor.fetchall()
+
+    # If there are any results, then it is a duplicate
+    if results:
+        if log:
+            print(f"CHECK: Duplicate found: {results}.")
+        return True
+
+    # If there are no results, then the post has not been archived yet
+    else:
+        if log:
+            print("CHECK: No duplicates found.")
+        return False
 
 
 def search(keyword, category):
