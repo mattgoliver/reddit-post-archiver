@@ -17,13 +17,14 @@ import time
 import sys
 
 
-CUR_DIR = os.getcwd()
+DIR = os.getcwd()
+DATABASE_NAME = "reddit-post-archive.sqlite3"
 
 
 def setup():
     """Creates the file structure and config file."""
     try:
-        os.mkdir(CUR_DIR + "/data")
+        os.mkdir(DIR + "/data")
     except FileExistsError:
         print("Data folder found.")
 
@@ -58,40 +59,30 @@ def initialize_reddit_connection():
     return reddit
 
 
-def initialize_database_connection(database_name, log=False):
-    """Connects to the archive database, creates one if it doesn't exist.
-
-    Args:
-        database_name (str): Name of database to connect to.
-        log (bool): Print log messages, default = False
+def initialize_database_connection():
+    """Connects to the post archive database, creates one if it doesn't exist.
 
     Returns:
         tup: Database connection and cursor
     """
     # If the database exists, then connect to it
-    if os.path.isfile(database_name):
-        local_connection = sqlite3.connect(database_name)
-        local_cursor = local_connection.cursor()
-        print(f'SQLLite3: Database exists. Successfully connected to {database_name}')
+    if os.path.isfile(DATABASE_NAME):
+        connection = sqlite3.connect(DATABASE_NAME)
+        cursor = connection.cursor()
+        print(f"SQLLite3: Database exists. Successfully connected to '{DATABASE_NAME}'")
 
     # If the database does not exist, then create it and connect to it
     else:
-        print(f'SQLLite3: Database does not exist. Creating {database_name}...')
-        local_connection = sqlite3.connect(database_name)
-        local_cursor = local_connection.cursor()
-        local_cursor.execute("create table posts (id text, title text, author text, content_text text, "
-                             "subreddit text, subreddit_size integer, upvotes integer, ratio integer, "
-                             "file_name text, url text, created integer)")
-        print(f"SQLLite3: Database successfully created.")
+        print(f"SQLLite3: Database does not exist. Creating '{DATABASE_NAME}'...")
+        connection = sqlite3.connect(DATABASE_NAME)
+        cursor = connection.cursor()
+        cursor.execute("create table posts (id text, title text, author text, "
+                             "content_text text, subreddit text, subreddit_size integer, "
+                             "upvotes integer, ratio integer, file_name text, url text, "
+                             "created integer, skip text)")
+        print("SQLLite3: Database successfully created.")
 
-    if log:
-        print("SQLLite3: Printing current database:")
-        local_cursor.execute("SELECT * FROM posts")
-        rows = local_cursor.fetchall()
-        for row in rows:
-            print(row)
-
-    return local_connection, local_cursor
+    return connection, cursor
 
 
 def archive_saved_posts(upvote=False, limit=None, log=False):
@@ -196,7 +187,7 @@ def archive(post, file_name, log=False):
 
 if __name__ == "__main__":
     # Run setup() if the config file does not exist.
-    if not os.path.exists(CUR_DIR + "/config.json"):
+    if not os.path.exists(DIR + "/config.json"):
         print("No data folder found, running setup...")
         setup()
     else:
@@ -207,14 +198,16 @@ if __name__ == "__main__":
         secrets = json.loads(f.read())
     reddit = initialize_reddit_connection()
 
-    """
     # Initialize database connection
-    connection, cursor = initialize_database_connection("reddit-post-archive.db")
+    connection, cursor = initialize_database_connection()
 
-    print('-' * 80, end="")  # Separate initialization messages from main output
-
-    archive_saved_posts(limit=10)
+    time.sleep(5)
 
     # Close database connection
     connection.close()
-    print("SQLLite3: Database successfully closed.")"""
+    print("SQLLite3: Database successfully closed.")
+
+    """
+    print('-' * 80, end="")  # Separate initialization messages from main output
+
+    archive_saved_posts(limit=10)"""
