@@ -11,6 +11,7 @@ import sqlite3  # Allows for database management
 import os  # Allows for checking if database exists
 import uuid  # Allows for generation of unique file names
 import urllib.request  # Allows for media downloading
+from urllib.parse import urlparse
 import requests  # Allows for retrieval of media type given URL
 import mimetypes  # Allows for retrieval of media type given URL
 import time
@@ -33,7 +34,7 @@ def setup():
     config = dict()
 
     config["REDDIT_CREDENTIALS"] = {"client_id": "", "client_secret": "", "username": "", "password": "", "user_agent": ""}
-    config["DOWNLOAD"] = {"video_extensions": []}
+    config["DOWNLOAD"] = {"video_extensions": [], "banned_websites": []}
 
     with open("config.json", "w") as config_file:
         json.dump(config, config_file, indent=2)
@@ -97,7 +98,7 @@ def check_duplicate(post_id):
     Returns:
         bool: True/False for duplicate status
     """
-    cursor.execute(f"select * from downloads where id='{post_id}'")
+    cursor.execute(f"select * from posts where id='{post_id}'")
     results = cursor.fetchall()
 
     # If there are any results, then it is a duplicate post
@@ -129,8 +130,7 @@ def archive_saved_posts(upvote=False, unsave=False, limit=100):
         if str(type(post)) == "<class 'praw.models.reddit.comment.Comment'>":
             continue
 
-        print()  # Improve output readability, puts spaces in between the output of each post
-
+        # Un-save and skip duplicate posts
         if check_duplicate(post.id):
             print(f"[{pos_info[0]}/{pos_info[1]}] Duplicate found: {post.title}")
             if unsave:
@@ -138,7 +138,7 @@ def archive_saved_posts(upvote=False, unsave=False, limit=100):
             continue
 
         # Download file and save the filename of the downloaded file
-        filename = download(post)
+        filename = download(post, pos_info)
 
         # Continue to next post if there was no file to download
         if filename is None:
@@ -148,7 +148,7 @@ def archive_saved_posts(upvote=False, unsave=False, limit=100):
             continue
 
         # Add the downloaded file to the database
-        archive(post, filename)
+        # archive(post, filename)
 
         # Un-save post to prevent future download attempts
         if unsave:
@@ -166,43 +166,62 @@ def archive_saved_posts(upvote=False, unsave=False, limit=100):
     print("MAIN: Finished downloading and archiving posts.")
 
 
-def download(post, log=False):
+def download(post, pos_info=(1,1), filename=""):
     """Downloads post at given url.
 
     Args:
-          post: Post to download.
-          log (bool): Print log messages, default = False
+          post (obj): Post to download.
+          pos_info (tup): Queue information in the form of (current position, queue size)
+          filename (str): Name to save download as, default=random
 
     Returns:
          tup: File name
     """
-    file_name = ""
+    filename = ""
     url = post.url
+
+    # Skip downloading if the url is part of a known banned website
+    domain = urlparse(url).netloc.split('.')[-2]
+    if domain in secrets["DOWNLOAD"]['banned_websites']:
+        return None
 
     # Retrieve file type
     response = requests.get(url)
     content_type = response.headers['content-type']
     file_type = mimetypes.guess_extension(content_type)
 
-    # Return None if there is no file to download
+    # Default to .mp4 if no file_type can be found
     if file_type is None:
-        print(f"DOWNLOAD: Error with post: '{post.title}', no media to download.")
-        return None
-
-    print(f"DOWNLOAD: Downloading post: '{post.title}', file type: '{file_type}'.")
+        file_type = '.mp4'
 
     # Loop until unique file name is generated
-    post_exists = True
-    while post_exists is True:
-        file_name = "./media/" + str(uuid.uuid4().hex) + file_type
+    if filename == "":
+        post_exists = True
+        while post_exists is True:
+            filename = DIR + "\\data\\" + str(uuid.uuid4().hex) + file_type
 
-        if not os.path.isfile(file_name):  # Check if file name already exists
-            post_exists = False
+            if not os.path.isfile(filename):  # Check if file name already exists
+                post_exists = False
 
-    # Download file
-    urllib.request.urlretrieve(url, file_name)
+    # Log archival progress in the terminal
+    print(f"[{pos_info[0]}/{pos_info[1]}] Downloading post: '{post.title}', file type: '{file_type}'.")
 
-    return file_name
+    # Download videos with yt-dlp
+    if file_type == ".mp4":  # Download video files with yt-dlp
+        print(f"[{pos_info[0]}/{pos_info[1]}] YT-DLP: '{filename}' downloading.")
+        os.system(f'yt-dlp -o {filename} {url}')
+
+    # Download images/GIFs with urllib
+    else:
+        try:
+            urllib.request.urlretrieve(url, filename)
+            print(f"[{pos_info[0]}/{pos_info[1]}] SUCCESS: '{filename}' downloaded.")
+            time.sleep(1)  # Slow down download requests
+        except urllib.error.HTTPError:  # Catch HTTP 404 errors.
+            print(f"[{pos_info[0]}/{pos_info[1]}] ERROR: '{filename}' returns Error 404.")
+            return None
+
+    return filename
 
 
 def archive(post, file_name, log=False):
