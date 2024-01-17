@@ -1,5 +1,5 @@
-/reddit-post-archive.sqlite3
-/data/*
-/__pycache__/*
+reddit-post-archive.sqlite3
+data/*
 *.pyc
+__pycache__/*
 config.json
