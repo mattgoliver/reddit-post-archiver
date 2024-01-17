@@ -1,7 +1,7 @@
 """Reddit Post Archiver.
 
 Author: Matthew Oliver
-Version: 10/15/2023
+Version: 1/17/2024
 """
 import access  # Allows for accessing the post/archive database
 import random  # Allows for random file names
@@ -13,26 +13,85 @@ import uuid  # Allows for generation of unique file names
 import urllib.request  # Allows for media downloading
 import requests  # Allows for retrieval of media type given URL
 import mimetypes  # Allows for retrieval of media type given URL
-import progressbar  # Allows for progress bar for downloads
 import time
+import sys
 
-pbar = None
+
+CUR_DIR = os.getcwd()
 
 
-def read_secrets(filename):
-    """Read login information from .json file.
+def setup():
+    """Creates the file structure and config file."""
+    try:
+        os.mkdir(CUR_DIR + "/data")
+    except FileExistsError:
+        print("Data folder found.")
 
-    Args:
-        filename (str): Name of file containing login information
+    config = dict()
+
+    config["REDDIT_CREDENTIALS"] = {"client_id": "", "client_secret": "", "username": "", "password": "", "user_agent": ""}
+    config["DOWNLOAD"] = {"video_extensions": []}
+
+    with open("config.json", "w") as config_file:
+        json.dump(config, config_file, indent=2)
+
+    sys.exit("[IMPORTANT] Please fill-in the config.json file before proceeding.")
+
+
+def initialize_reddit_connection():
+    """Connect to the Reddit API via PRAW.
 
     Returns:
-        dict: Login information.
+        obj: Authenticated Reddit instance
     """
-    try:
-        with open(filename, mode='r') as f:
-            return json.loads(f.read())
-    except FileNotFoundError:
-        print(f"ERROR: No .json file found for login information with the name '{filename}'")
+    reddit_credentials = secrets["REDDIT_CREDENTIALS"]
+    reddit = praw.Reddit(
+        client_id=reddit_credentials["client_id"],
+        client_secret=reddit_credentials["client_secret"],
+        password=reddit_credentials["password"],
+        user_agent=reddit_credentials["user_agent"],
+        username=reddit_credentials["username"]
+    )
+
+    print(f"PRAW: Successfully authenticated as user: {reddit.user.me()}")
+
+    return reddit
+
+
+def initialize_database_connection(database_name, log=False):
+    """Connects to the archive database, creates one if it doesn't exist.
+
+    Args:
+        database_name (str): Name of database to connect to.
+        log (bool): Print log messages, default = False
+
+    Returns:
+        tup: Database connection and cursor
+    """
+    # If the database exists, then connect to it
+    if os.path.isfile(database_name):
+        local_connection = sqlite3.connect(database_name)
+        local_cursor = local_connection.cursor()
+        print(f'SQLLite3: Database exists. Successfully connected to {database_name}')
+
+    # If the database does not exist, then create it and connect to it
+    else:
+        print(f'SQLLite3: Database does not exist. Creating {database_name}...')
+        local_connection = sqlite3.connect(database_name)
+        local_cursor = local_connection.cursor()
+        local_cursor.execute("create table posts (id text, title text, author text, content_text text, "
+                             "subreddit text, subreddit_size integer, upvotes integer, ratio integer, "
+                             "file_name text, url text, created integer)")
+        print(f"SQLLite3: Database successfully created.")
+
+    if log:
+        print("SQLLite3: Printing current database:")
+        local_cursor.execute("SELECT * FROM posts")
+        rows = local_cursor.fetchall()
+        for row in rows:
+            print(row)
+
+    return local_connection, local_cursor
 
 
 def archive_saved_posts(upvote=False, limit=None, log=False):
@@ -101,7 +160,7 @@ def download(post, log=False):
             post_exists = False
 
     # Download file
-    urllib.request.urlretrieve(url, file_name, show_progress)
+    urllib.request.urlretrieve(url, file_name)
 
     return file_name
 
@@ -135,84 +194,20 @@ def archive(post, file_name, log=False):
     print(f"ARCHIVE: '{post.title}' successfully added to the archive.")
 
 
-def show_progress(block_num, block_size, total_size):
-    # Solution from: https://stackoverflow.com/questions/37748105/how-to-use-progressbar-module-with-urlretrieve
-    global pbar
-    if pbar is None:
-        pbar = progressbar.ProgressBar(maxval=total_size)
-        pbar.start()
-
-    downloaded = block_num * block_size
-    if downloaded < total_size:
-        pbar.update(downloaded)
-    else:
-        pbar.finish()
-        pbar = None
-
-
-def initialize_database_connection(database_name, log=False):
-    """Connects to the archive database, creates one if it doesn't exist.
-
-    Args:
-        database_name (str): Name of database to connect to.
-        log (bool): Print log messages, default = False
-
-    Returns:
-        tup: Database connection and cursor
-    """
-    # If the database exists, then connect to it
-    if os.path.isfile(database_name):
-        local_connection = sqlite3.connect(database_name)
-        local_cursor = local_connection.cursor()
-        print(f'SQLLite3: Database exists. Successfully connected to {database_name}')
-
-    # If the database does not exist, then create it and connect to it
-    else:
-        print(f'SQLLite3: Database does not exist. Creating {database_name}...')
-        local_connection = sqlite3.connect(database_name)
-        local_cursor = local_connection.cursor()
-        local_cursor.execute("create table posts (id text, title text, author text, content_text text, "
-                             "subreddit text, subreddit_size integer, upvotes integer, ratio integer, "
-                             "file_name text, url text, created integer)")
-        print(f"SQLLite3: Database successfully created.")
-
-    if log:
-        print("SQLLite3: Printing current database:")
-        local_cursor.execute("SELECT * FROM posts")
-        rows = local_cursor.fetchall()
-        for row in rows:
-            print(row)
-
-    return local_connection, local_cursor
-
-
-def initialize_reddit_connection(log=False):
-    """Connect to Reddit API via PRAW.
-
-    Args:
-        log (bool): Print log messages, default = False
-
-    Returns:
-        obj: Authenticated Reddit instance
-    """
-    secrets = read_secrets("secrets.json")
-    reddit = praw.Reddit(
-        client_id=secrets["client_id"],
-        client_secret=secrets["client_secret"],
-        password=secrets["password"],
-        user_agent=secrets["user_agent"],
-        username=secrets["username"]
-    )
-
-    print(f"PRAW: Successfully authenticated as user: {reddit.user.me()}")
-
-    return reddit
-
-
 if __name__ == "__main__":
-    # Initialize Reddit instance
+    # Run setup() if the config file does not exist.
+    if not os.path.exists(CUR_DIR + "/config.json"):
+        print("No data folder found, running setup...")
+        setup()
+    else:
+        print("Configuration file found, continuing with initialization.")
+
+    # Load secrets and connect to Reddit API.
+    with open("config.json", mode='r') as f:
+        secrets = json.loads(f.read())
     reddit = initialize_reddit_connection()
 
+    """
     # Initialize database connection
     connection, cursor = initialize_database_connection("reddit-post-archive.db")
 
@@ -222,4 +217,4 @@ if __name__ == "__main__":
 
     # Close database connection
     connection.close()
-    print("SQLLite3: Database successfully closed.")
+    print("SQLLite3: Database successfully closed.")"""
