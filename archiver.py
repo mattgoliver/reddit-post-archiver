@@ -108,16 +108,22 @@ def check_duplicate(post_id):
 
 
 # Processing functions
-def archive_saved_posts(upvote=False, unsave=False):
+def archive_saved_posts(upvote=False, unsave=False, limit=100):
     """Retrieves all saved posts from user's profile.
 
     Args:
         upvote (bool): Upvote post once archived, default=False
+        unsave (bool): Unsave post once archived, default=False
+        limit (int): Amount of posts to save, default=100, max=100
     """
     posts = reddit.user.me().saved()
 
     for pos, post in enumerate(posts):
-        pos_info = (pos+1, 100)
+        # Stop processing posts once the set limit has been exceeded
+        if pos+1 > limit:
+            break
+
+        pos_info = (pos+1, limit)
 
         # Ignore saved comments
         if str(type(post)) == "<class 'praw.models.reddit.comment.Comment'>":
@@ -229,6 +235,8 @@ def archive(post, file_name, log=False):
 
 
 if __name__ == "__main__":
+    print(SEPARATOR)
+
     # Run setup() if the config file does not exist.
     if not os.path.exists(DIR + "/config.json"):
         print("No data folder found, running setup...")
@@ -245,9 +253,10 @@ if __name__ == "__main__":
     # Separate initialization messages from main output
     print(SEPARATOR)
 
-    time.sleep(5)
+    archive_saved_posts(limit=2)
 
     # Close database connection
+    time.sleep(2)
     connection.close()
     print("SQLLite3: Database successfully closed.")
 
