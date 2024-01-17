@@ -17,6 +17,7 @@ import sys  # Allows for usage of yt-dlp
 
 
 DIR = os.getcwd()
+DATA_DIR = DIR + "\\data\\"
 DATABASE_NAME = "reddit-post-archive.sqlite3"
 SEPARATOR = '-' * 80
 
@@ -25,7 +26,7 @@ SEPARATOR = '-' * 80
 def setup():
     """Creates the file structure and config file."""
     try:
-        os.mkdir(DIR + "/data")
+        os.mkdir(DATA_DIR)
     except FileExistsError:
         print("Data folder found.")
 
@@ -201,7 +202,7 @@ def download(post, pos_info=(1, 1), filename=""):
     if filename == "":
         post_exists = True
         while post_exists is True:
-            filename = DIR + "\\data\\" + str(uuid.uuid4().hex) + file_type
+            filename = DATA_DIR + str(uuid.uuid4().hex) + file_type
 
             if not os.path.isfile(filename):  # Check if file name already exists
                 post_exists = False
