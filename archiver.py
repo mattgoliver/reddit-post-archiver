@@ -3,19 +3,17 @@
 Author: Matthew Oliver
 Version: 1/17/2024
 """
-import access  # Allows for accessing the post/archive database
-import random  # Allows for random file names
 import json  # Allows access to the .json login information file
 import praw  # Allows access to Reddit's API
 import sqlite3  # Allows for database management
 import os  # Allows for checking if database exists
 import uuid  # Allows for generation of unique file names
 import urllib.request  # Allows for media downloading
-from urllib.parse import urlparse
-import requests  # Allows for retrieval of media type given URL
-import mimetypes  # Allows for retrieval of media type given URL
-import time
-import sys
+from urllib.parse import urlparse  # Allows for url domain identification
+import requests  # Allows for file type identification
+import mimetypes  # Allows for file type identification
+import time  # Allows for rate limiting
+import sys  # Allows for usage of yt-dlp
 
 
 DIR = os.getcwd()
