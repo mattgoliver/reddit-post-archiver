@@ -19,8 +19,10 @@ import sys
 
 DIR = os.getcwd()
 DATABASE_NAME = "reddit-post-archive.sqlite3"
+SEPARATOR = '-' * 80
 
 
+# Initialization functions
 def setup():
     """Creates the file structure and config file."""
     try:
@@ -85,36 +87,77 @@ def initialize_database_connection():
     return connection, cursor
 
 
-def archive_saved_posts(upvote=False, limit=None, log=False):
+# Helper functions
+def check_duplicate(post_id):
+    """Check the archive to see if a URL has been downloaded before.
+
+    Args:
+        post_id (str): Post ID to check for duplicate
+
+    Returns:
+        bool: True/False for duplicate status
+    """
+    cursor.execute(f"select * from downloads where id='{post_id}'")
+    results = cursor.fetchall()
+
+    # If there are any results, then it is a duplicate post
+    if results:
+        return True
+    else:
+        return False
+
+
+# Processing functions
+def archive_saved_posts(upvote=False, unsave=False):
     """Retrieves all saved posts from user's profile.
 
     Args:
         upvote (bool): Upvote post once archived, default=False
-        limit (int): Amount of posts to retrieve, default=1000, max=1000
-        log (bool): Print log messages, default = False
-
-    Returns:
-        dict: Dictionary containing post information.
     """
-    for post in reddit.user.me().saved(limit=limit):
-        if str(type(post)) == "<class 'praw.models.reddit.comment.Comment'>":  # Ignore saved comments
+    posts = reddit.user.me().saved()
+
+    for pos, post in enumerate(posts):
+        pos_info = (pos+1, 100)
+
+        # Ignore saved comments
+        if str(type(post)) == "<class 'praw.models.reddit.comment.Comment'>":
             continue
 
         print()  # Improve output readability, puts spaces in between the output of each post
 
-        if access.check_duplicate(post.id, cursor):  # Ignore duplicate post
-            print(f"MAIN: Duplicate found of post: '{post.title}'.")
+        if check_duplicate(post.id):
+            print(f"[{pos_info[0]}/{pos_info[1]}] Duplicate found: {post.title}")
+            if unsave:
+                post.unsave()
             continue
 
-        file_name = download(post, log)  # Download file and grab file name
+        # Download file and save the filename of the downloaded file
+        filename = download(post)
 
-        if file_name is None:  # Continue to next post if there was no file to download
+        # Continue to next post if there was no file to download
+        if filename is None:
+            print(f"[{pos_info[0]}/{pos_info[1]}] Empty post found: {post.title}")
+            if unsave:
+                post.unsave()
             continue
 
-        archive(post, file_name, log)
+        # Add the downloaded file to the database
+        archive(post, filename)
 
-    print('-' * 80)  # Separate main output from closing messages
-    print("MAIN: Finished downloading and archiving posts")
+        # Un-save post to prevent future download attempts
+        if unsave:
+            post.unsave()
+
+        # Upvote posts after archival
+        if upvote:
+            try:
+                post.upvote()
+            except:
+                print(f"[{pos_info[0]}/{pos_info[1]}] Archived Post - Cannot upvote.")
+
+    # Separate main output from closing messages
+    print(SEPARATOR)
+    print("MAIN: Finished downloading and archiving posts.")
 
 
 def download(post, log=False):
@@ -190,8 +233,6 @@ if __name__ == "__main__":
     if not os.path.exists(DIR + "/config.json"):
         print("No data folder found, running setup...")
         setup()
-    else:
-        print("Configuration file found, continuing with initialization.")
 
     # Load secrets and connect to Reddit API.
     with open("config.json", mode='r') as f:
@@ -201,13 +242,13 @@ if __name__ == "__main__":
     # Initialize database connection
     connection, cursor = initialize_database_connection()
 
+    # Separate initialization messages from main output
+    print(SEPARATOR)
+
     time.sleep(5)
 
     # Close database connection
     connection.close()
     print("SQLLite3: Database successfully closed.")
 
-    """
-    print('-' * 80, end="")  # Separate initialization messages from main output
-
-    archive_saved_posts(limit=10)"""
+    """archive_saved_posts(limit=10)"""
