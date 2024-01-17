@@ -1,3 +1,5 @@
 /reddit-post-archive.sqlite3
 /data/*
+/__pycache__/*
+*.pyc
 config.json
