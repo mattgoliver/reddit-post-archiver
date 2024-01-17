@@ -34,7 +34,7 @@ def setup():
     config = dict()
 
     config["REDDIT_CREDENTIALS"] = {"client_id": "", "client_secret": "", "username": "", "password": "", "user_agent": ""}
-    config["DOWNLOAD"] = {"video_extensions": [], "banned_websites": []}
+    config["DOWNLOAD"] = {"banned_websites": []}
 
     with open("config.json", "w") as config_file:
         json.dump(config, config_file, indent=2)
@@ -133,8 +133,13 @@ def archive_saved_posts(upvote=False, unsave=False, limit=100):
         # Un-save and skip duplicate posts
         if check_duplicate(post.id):
             print(f"[{pos_info[0]}/{pos_info[1]}] Duplicate found: {post.title}")
-            if unsave:
+            if unsave:  # Un-save post
                 post.unsave()
+            if upvote:
+                try:  # Upvote post so that user sees that it has been saved
+                    post.upvote()
+                except:
+                    print(f"[{pos_info[0]}/{pos_info[1]}] Archived Post - Cannot upvote.")
             continue
 
         # Download file and save the filename of the downloaded file
@@ -270,7 +275,7 @@ if __name__ == "__main__":
     # Separate initialization messages from main output
     print(SEPARATOR)
 
-    archive_saved_posts(limit=2)
+    archive_saved_posts(upvote=True)
 
     # Close database connection
     time.sleep(2)
