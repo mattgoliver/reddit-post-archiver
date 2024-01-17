@@ -148,7 +148,7 @@ def archive_saved_posts(upvote=False, unsave=False, limit=100):
             continue
 
         # Add the downloaded file to the database
-        # archive(post, filename)
+        archive(post, filename, pos_info)
 
         # Un-save post to prevent future download attempts
         if unsave:
@@ -166,7 +166,7 @@ def archive_saved_posts(upvote=False, unsave=False, limit=100):
     print("MAIN: Finished downloading and archiving posts.")
 
 
-def download(post, pos_info=(1,1), filename=""):
+def download(post, pos_info=(1, 1), filename=""):
     """Downloads post at given url.
 
     Args:
@@ -175,7 +175,7 @@ def download(post, pos_info=(1,1), filename=""):
           filename (str): Name to save download as, default=random
 
     Returns:
-         tup: File name
+         str: File name
     """
     filename = ""
     url = post.url
@@ -224,33 +224,31 @@ def download(post, pos_info=(1,1), filename=""):
     return filename
 
 
-def archive(post, file_name, log=False):
+def archive(post, filename, pos_info=(1, 1)):
     """Archives the post at the given url.
 
-    Information archived: ID, title, author, content (text & media), subreddit, url, date, amount and ratio of upvotes
+    Information archived: ID, title, author, content (text & media), subreddit, url, date, amount
+    and ratio of upvotes.
 
     Args:
         post: Post to archive.
-        file_name: Name of downloaded file to associate post information with.
-        log (bool): Print log messages, default = False
+        filename: Name of downloaded file to associate post information with.
+        pos_info (tup): Queue information in the form of (current position, queue size)
     """
     # Find the subscriber count of the post's subreddit
     subreddit_size = int(reddit.subreddit(str(post.subreddit)).subscribers)
 
-    if log:
-        print(f"ARCHIVE: ID: {post.id}, Title: {post.title}, Author: {post.author}, Text: {post.selftext}, "
-              f"Subreddit: {post.subreddit}, Subreddit Size: {subreddit_size}, Upvotes: {post.score}, "
-              f"Ratio: {post.upvote_ratio}, File name: {file_name}, URL: {post.url}, Created: {post.created_utc}")
-
     # Add post data to the database
     cursor.execute(
-        f"insert into posts values ('{post.id}', '{post.title}', '{post.author}', '{post.selftext}', "
-        f"'{post.subreddit}', {subreddit_size}, {post.score}, {post.upvote_ratio}, '{file_name}', '{post.url}', "
-        f"{post.created_utc})"
+        f'insert into posts values ("{post.id}", "{post.title}", "{post.author}", '
+        f'"{post.selftext}", "{post.subreddit}", {subreddit_size}, {post.score}, '
+        f'{post.upvote_ratio}, "{filename}", "{post.url}", {post.created_utc}, '
+        '"False")'
     )
     connection.commit()
 
-    print(f"ARCHIVE: '{post.title}' successfully added to the archive.")
+    print(f"[{pos_info[0]}/{pos_info[1]}] ARCHIVE: '{post.title}' successfully added to the "
+          "archive.\n")
 
 
 if __name__ == "__main__":
@@ -278,5 +276,3 @@ if __name__ == "__main__":
     time.sleep(2)
     connection.close()
     print("SQLLite3: Database successfully closed.")
-
-    """archive_saved_posts(limit=10)"""
