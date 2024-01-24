@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Config_Check</class>
+ <widget class="QMainWindow" name="Config_Check">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>445</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Reddit Post Archiver</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="doneButton">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>410</y>
+      <width>191</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Done</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>50</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Base Directory</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>441</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Path Configurations</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>200</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Client Secret</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>170</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Client ID</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>110</y>
+      <width>441</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Reddit Configuration</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>260</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Password</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>230</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Username</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>290</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>User Agent</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>370</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Banned Websites</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>320</y>
+      <width>441</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Download Configuration</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>80</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Data Directory</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="baseDirectory">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>50</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="dataDirectory">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>80</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="client_id">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>170</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="user_agent">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>290</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="client_secret">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>200</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="username">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>230</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="password">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>260</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="banned">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>370</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>445</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
