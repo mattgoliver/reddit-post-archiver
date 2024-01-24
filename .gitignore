@@ -3,4 +3,3 @@ data/*
 *.pyc
 __pycache__/*
 config.json
-test.ui
