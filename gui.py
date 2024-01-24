@@ -10,6 +10,8 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.uic import loadUi
+from PyQt5.QtWidgets import QMainWindow, QApplication
 import archiver
 import json
 import os
@@ -22,155 +24,103 @@ def read_secrets():
     return secrets
 
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(372, 455)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.doneButton = QtWidgets.QPushButton(self.centralwidget)
-        self.doneButton.setGeometry(QtCore.QRect(90, 370, 191, 41))
-        font = QtGui.QFont()
-        font.setPointSize(14)
-        self.doneButton.setFont(font)
-        self.doneButton.setObjectName("doneButton")
-        self.baseDirectory = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.baseDirectory.setGeometry(QtCore.QRect(110, 40, 231, 21))
-        self.baseDirectory.setAcceptDrops(True)
-        self.baseDirectory.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.baseDirectory.setObjectName("baseDirectory")
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(20, 40, 71, 21))
-        self.label.setObjectName("label")
-        self.label_3 = QtWidgets.QLabel(self.centralwidget)
-        self.label_3.setGeometry(QtCore.QRect(90, 0, 171, 41))
-        font = QtGui.QFont()
-        font.setPointSize(14)
-        self.label_3.setFont(font)
-        self.label_3.setObjectName("label_3")
-        self.clientID = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.clientID.setGeometry(QtCore.QRect(110, 140, 231, 21))
-        self.clientID.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.clientID.setObjectName("clientID")
-        self.label_4 = QtWidgets.QLabel(self.centralwidget)
-        self.label_4.setGeometry(QtCore.QRect(20, 170, 71, 21))
-        self.label_4.setObjectName("label_4")
-        self.clientSecret = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.clientSecret.setGeometry(QtCore.QRect(110, 170, 231, 21))
-        self.clientSecret.setAccessibleDescription("")
-        self.clientSecret.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.clientSecret.setObjectName("ClientSecret")
-        self.label_5 = QtWidgets.QLabel(self.centralwidget)
-        self.label_5.setGeometry(QtCore.QRect(20, 140, 71, 21))
-        self.label_5.setObjectName("label_5")
-        self.label_6 = QtWidgets.QLabel(self.centralwidget)
-        self.label_6.setGeometry(QtCore.QRect(90, 100, 171, 41))
-        font = QtGui.QFont()
-        font.setPointSize(14)
-        self.label_6.setFont(font)
-        self.label_6.setObjectName("label_6")
-        self.label_7 = QtWidgets.QLabel(self.centralwidget)
-        self.label_7.setGeometry(QtCore.QRect(20, 230, 71, 21))
-        self.label_7.setObjectName("label_7")
-        self.password = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.password.setGeometry(QtCore.QRect(110, 230, 231, 21))
-        self.password.setAccessibleDescription("")
-        self.password.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.password.setObjectName("password")
-        self.label_8 = QtWidgets.QLabel(self.centralwidget)
-        self.label_8.setGeometry(QtCore.QRect(20, 200, 71, 21))
-        self.label_8.setObjectName("label_8")
-        self.username = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.username.setGeometry(QtCore.QRect(110, 200, 231, 21))
-        self.username.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.username.setObjectName("username")
-        self.label_9 = QtWidgets.QLabel(self.centralwidget)
-        self.label_9.setGeometry(QtCore.QRect(20, 260, 71, 21))
-        self.label_9.setObjectName("label_9")
-        self.userAgent = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.userAgent.setGeometry(QtCore.QRect(110, 260, 231, 21))
-        self.userAgent.setAccessibleDescription("")
-        self.userAgent.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.userAgent.setObjectName("userAgent")
-        self.banned = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.banned.setGeometry(QtCore.QRect(110, 330, 231, 21))
-        self.banned.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.banned.setObjectName("banned")
-        self.label_11 = QtWidgets.QLabel(self.centralwidget)
-        self.label_11.setGeometry(QtCore.QRect(20, 330, 91, 21))
-        self.label_11.setObjectName("label_11")
-        self.label_12 = QtWidgets.QLabel(self.centralwidget)
-        self.label_12.setGeometry(QtCore.QRect(80, 290, 201, 41))
-        font = QtGui.QFont()
-        font.setPointSize(14)
-        self.label_12.setFont(font)
-        self.label_12.setObjectName("label_12")
-        self.dataDirectory = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.dataDirectory.setGeometry(QtCore.QRect(110, 70, 231, 21))
-        self.dataDirectory.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.dataDirectory.setObjectName("dataDirectory")
-        self.label_2 = QtWidgets.QLabel(self.centralwidget)
-        self.label_2.setGeometry(QtCore.QRect(20, 70, 71, 21))
-        self.label_2.setObjectName("label_2")
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 372, 22))
-        self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Reddit Post Archiver"))
-        self.doneButton.setText(_translate("MainWindow", "Done"))
-        self.baseDirectory.setPlaceholderText(_translate("MainWindow", "test"))
-        self.label.setText(_translate("MainWindow", "Base Directory"))
-        self.label_3.setText(_translate("MainWindow", "Path Configurations"))
-        self.label_4.setText(_translate("MainWindow", "Client Secret"))
-        self.label_5.setText(_translate("MainWindow", "Client ID"))
-        self.label_6.setText(_translate("MainWindow", "Reddit Configuration"))
-        self.label_7.setText(_translate("MainWindow", "Password"))
-        self.label_8.setText(_translate("MainWindow", "Username"))
-        self.label_9.setText(_translate("MainWindow", "User Agent"))
-        self.label_11.setText(_translate("MainWindow", "Banned Websites"))
-        self.label_12.setText(_translate("MainWindow", "Download Configuration"))
-        self.label_2.setText(_translate("MainWindow", "Data Directory"))
-
-    def run(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
+class Config_Check(QMainWindow):
+    def __init__(self):
+        super(Config_Check, self).__init__()
+        loadUi("config_check.ui", self)
+        widget.resize(445, 500)
+        widget.setWindowTitle("RPA Config Check")
 
         # Display saved configurations if available
         if os.path.exists(os.path.join(".", "config.json")):
             secrets = read_secrets()
 
-            self.baseDirectory.setPlaceholderText("..." + secrets["DOWNLOAD_PATHS"]["base_directory"][-40:])
-            self.dataDirectory.setPlaceholderText("..." + secrets["DOWNLOAD_PATHS"]["data_directory"][-40:])
-            self.clientID.setPlaceholderText(secrets["REDDIT_CREDENTIALS"]["client_id"][-40:])
-            self.clientSecret.setPlaceholderText(secrets["REDDIT_CREDENTIALS"]["client_secret"][-40:])
-            self.username.setPlaceholderText(secrets["REDDIT_CREDENTIALS"]["username"][-40:])
-            self.password.setPlaceholderText("*" * len(secrets["REDDIT_CREDENTIALS"]["password"][-40:]))
-            self.userAgent.setPlaceholderText(secrets["REDDIT_CREDENTIALS"]["user_agent"][-40:])
-            self.banned.setPlaceholderText(str(secrets["DOWNLOAD"]["banned_websites"])[-40:])
+            self.baseDirectory.setText(secrets["DOWNLOAD_PATHS"]["base_directory"])
+            self.dataDirectory.setText(secrets["DOWNLOAD_PATHS"]["data_directory"])
+            self.client_id.setText(secrets["REDDIT_CREDENTIALS"]["client_id"])
+            self.client_secret.setText(secrets["REDDIT_CREDENTIALS"]["client_secret"])
+            self.username.setText(secrets["REDDIT_CREDENTIALS"]["username"])
+            self.password.setPlaceholderText("*" * len(secrets["REDDIT_CREDENTIALS"]["password"]))
+            self.user_agent.setText(secrets["REDDIT_CREDENTIALS"]["user_agent"])
+            self.banned.setText(str(secrets["DOWNLOAD"]["banned_websites"]))
 
-        self.doneButton.clicked.connect(self.clicked)
+        self.doneButton.clicked.connect(self.save_config)
 
-    def clicked(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        self.baseDirectory.setPlaceholderText(_translate("MainWindow", "done"))
+    def save_config(self, MainWindow):
+        config = dict()
+        config = {"DOWNLOAD_PATHS": {}, "REDDIT_CREDENTIALS": {}, "DOWNLOAD": {}}
 
+        # Verify base directory exists
+        if os.path.exists(self.baseDirectory.text()):
+            base_directory = self.baseDirectory.text()
+            config["DOWNLOAD_PATHS"]["base_directory"] = base_directory
+        else:
+            QtWidgets.QMessageBox.about(None, "Directory Error", "The given base directory does not exist!")
+            return
+
+        # Verify data directory exists
+        if os.path.exists(self.dataDirectory.text()):
+            data_directory = self.dataDirectory.text()
+            config["DOWNLOAD_PATHS"]["data_directory"] = data_directory
+        else:
+            QtWidgets.QMessageBox.about(None, "Directory Error", "The given data directory does not exist!")
+            return
+
+        if self.password.text() == "":
+            password = read_secrets()["REDDIT_CREDENTIALS"]["password"]
+            config["REDDIT_CREDENTIALS"]["password"] = password
+        else:
+            config["REDDIT_CREDENTIALS"]["password"] = self.password.text()
+
+        config["REDDIT_CREDENTIALS"]["client_id"] = self.client_id.text()
+        config["REDDIT_CREDENTIALS"]["client_secret"] = self.client_secret.text()
+        config["REDDIT_CREDENTIALS"]["username"] = self.username.text()
+        config["REDDIT_CREDENTIALS"]["user_agent"] = self.user_agent.text()
+
+        try:
+            #reddit = archiver.initialize_reddit_connection(config)
+            print("Bypassing Reddit auth to prevent spam during development.")
+        except:
+            QtWidgets.QMessageBox.about(None, "Reddit Authentication Error", "The provided Reddit credentials do not work, please check again.")
+            return
+
+        config["DOWNLOAD"]["banned_websites"] = self.banned.text()
+
+        with open("config.json", "w") as config_file:
+            json.dump(config, config_file, indent=2)
+
+        main_menu = Main_Menu()
+        widget.addWidget(main_menu)
+
+        self.goToMainMenu()
+
+    def goToMainMenu(self):
+        widget.setCurrentIndex(widget.currentIndex()+1)
+
+
+class Main_Menu(QMainWindow):
+    def __init__(self):
+        super(Main_Menu, self).__init__()
+        loadUi("main_menu.ui", self)
+        widget.setWindowTitle("RPA - Main Menu")
 
 
 if __name__ == "__main__":
     import sys
-    app = QtWidgets.QApplication(sys.argv)
+    """app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     ui.run(MainWindow)
     MainWindow.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec_())"""
+    app = QApplication(sys.argv)
+    widget = QtWidgets.QStackedWidget()
+    config_check = Config_Check()
+    widget.addWidget(config_check)
+    widget.show()
+
+    try:
+        sys.exit(app.exec_())
+    except:
+        print("Exiting...")
